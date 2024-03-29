@@ -54,6 +54,21 @@ app.put("/api/product/:id", async (req, res) => {
   }
 });
 
+app.delete("/api/product/:id", async (req, res) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    if (!Product)
+      return res
+        .status(404)
+        .json("The product with the given ID was not found.");
+    res.status(200).json("Deleted the product successfully!");
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "There was a problem deleting the product" });
+  }
+});
+
 mongoose
   .connect(
     "mongodb+srv://albertosierra101:As022499@sierratonindb.zdapufq.mongodb.net/?retryWrites=true&w=majority&appName=SierratoninDB"
