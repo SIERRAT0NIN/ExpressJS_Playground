@@ -1,16 +1,14 @@
 // import mongoose from "mongoose";
 const mongoose = require("mongoose");
 const express = require("express");
+const bcrypt = require("bcryptjs");
 const Product = require("./models/product.model");
+const User = require("./models/User.model");
 
 const app = express();
 const port = 3001;
 
 app.use(express.json());
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
 
 app.post("/api/products", async (req, res) => {
   try {
@@ -21,6 +19,7 @@ app.post("/api/products", async (req, res) => {
   }
 });
 
+// Find All
 app.get("/api/products", async (req, res) => {
   try {
     const products = await Product.find({});
@@ -30,6 +29,7 @@ app.get("/api/products", async (req, res) => {
   }
 });
 
+//Find by ID
 app.get("/api/products/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -39,6 +39,7 @@ app.get("/api/products/:id", async (req, res) => {
   }
 });
 
+// Update a product
 app.put("/api/product/:id", async (req, res) => {
   try {
     const product = await Product.findByIdAndUpdate(req.params.id, req.body);
@@ -54,6 +55,7 @@ app.put("/api/product/:id", async (req, res) => {
   }
 });
 
+// Delete a product
 app.delete("/api/product/:id", async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
@@ -66,6 +68,50 @@ app.delete("/api/product/:id", async (req, res) => {
     res
       .status(500)
       .json({ message: "There was a problem deleting the product" });
+  }
+});
+
+app.post("/api/signup", async (req, res) => {
+  try {
+    const existingUser = await User.findOne({ username: req.body.username });
+    if (existingUser) {
+      return res.status(409).json("Username already exists");
+    } else {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
+      const userToCreate = {
+        ...req.body,
+        password: hashedPassword,
+      };
+      const user = await User.create(userToCreate);
+      const { password, ...userWithoutPassword } = user.toObject();
+      return res.status(201).json({
+        message: "User successfully created!",
+        user: userWithoutPassword,
+      });
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+app.post("/api/login", async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.body.username });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(
+      req.body.password,
+      user.password
+    );
+    if (!isPasswordMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+    res.status(200).json({ message: "Login successful!" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
