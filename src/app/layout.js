@@ -14,13 +14,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <Header />
-      <div>
-        <Providers>
-          <body className={inter.className}>{children}</body>
-        </Providers>
-      </div>
-      <Footer />
+      <Providers>
+        <body className={inter.className}>{children}</body>
+      </Providers>
     </html>
   );
 }

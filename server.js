@@ -4,12 +4,17 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const Product = require("./models/product.model");
 const User = require("./models/user.model");
+const cors = require("cors");
 
 const app = express();
 const port = 3001;
 
 app.use(express.json());
-
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Adjust this to your frontend's origin
+  })
+);
 app.post("/api/products", async (req, res) => {
   try {
     const product = await Product.create(req.body);
